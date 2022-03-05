@@ -8,8 +8,6 @@ const taskField = getById("task_field");
 const taskList = getById("task_list");
 // const taskList = document.getElementsByClassName("task_list")[0];
 
-console.log(taskList);
-
 // get value and add task
 addBtn.addEventListener("click", function () {
   const taskValue = taskField.value;
@@ -33,6 +31,15 @@ function addTask(taskValue) {
                     <button class="delete"><i class="fas fa-trash"></i></button>
                 `;
   taskList.appendChild(item);
+  const tasks = getDataFromLocalStorage();
+  let uniqueTask = taskValue;
+  for (let taskName of tasks) {
+    if (taskName.trim() === taskValue) {
+      uniqueTask += " ";
+    }
+  }
+  tasks.push(uniqueTask);
+  setDataToLocalStorage(tasks);
 
   //   console.log(taskList);
 }
@@ -51,7 +58,19 @@ taskList.addEventListener("click", function (event) {
 // delete task
 function deleteTask(event) {
   event.target.parentElement.remove();
+  const innerText = event.target.parentElement.firstElementChild.innerText;
+  removeDataFromLocalStorage(innerText);
 }
+
+// remove from local storage
+function removeDataFromLocalStorage(innerText) {
+  const tasks = getDataFromLocalStorage();
+  const index = tasks.indexOf(innerText);
+  console.log(index);
+  tasks.splice(index, 1);
+  setDataToLocalStorage(tasks);
+}
+
 // completed task
 function completedTask(event) {
   const li = event.target.parentElement.firstElementChild;
@@ -66,6 +85,7 @@ function completedTask(event) {
 
 // edit task
 function editTask(event) {
+  event.target.style.display = "none";
   const li = event.target.parentElement.firstElementChild;
 
   const prevText = li.innerText;
@@ -79,18 +99,55 @@ function editTask(event) {
   input.style.border = "none";
   input.style.outline = "none";
   input.style.borderRadius = "5px";
-
   input.type = "text";
   input.value = prevText;
   li.appendChild(input);
 
-  // set edit task
+  // set edited task
   input.addEventListener("keypress", function (e) {
     if (e.key == "Enter") {
       const editedTask = e.target.value;
       li.innerText = editedTask;
-      event.target.style.display = "block";
+      event.target.style.display = "inline";
     }
   });
-  event.target.style.display = "none";
+}
+
+// load data from local storage
+window.onload = function () {
+  const tasks = getDataFromLocalStorage();
+  displayToUI(tasks);
+};
+
+// get data from localstorage
+function getDataFromLocalStorage() {
+  let tasks;
+  const data = localStorage.getItem("tasks");
+
+  if (data) {
+    tasks = JSON.parse(data);
+  } else {
+    tasks = [];
+  }
+  return tasks;
+}
+
+// data display to the UI
+function displayToUI(tasks) {
+  tasks.forEach((task) => {
+    const item = document.createElement("div");
+    item.className = "item";
+    item.innerHTML = `
+  <li>${task}</li>
+  <button class="edit"><i class="fas fa-pen"></i></button>
+  <button class="completed"><i class="fas fa-check"></i></button>
+  <button class="delete"><i class="fas fa-trash"></i></button>
+  `;
+    taskList.appendChild(item);
+  });
+}
+
+// set data to local storage
+function setDataToLocalStorage(tasks) {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }

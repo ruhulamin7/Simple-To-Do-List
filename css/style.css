@@ -72,3 +72,9 @@ body {
   text-decoration: line-through;
   background-color: gray;
 }
+.done {
+  display: none;
+  padding: 9px;
+  background-color: rgb(106, 161, 106);
+  border: 0;
+}
