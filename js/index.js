@@ -15,7 +15,6 @@ addBtn.addEventListener("click", function () {
     alert("Please add a task");
     return;
   }
-  //   console.log(taskValue);
   addTask(taskValue);
   taskField.value = "";
 });
@@ -33,18 +32,18 @@ function addTask(taskValue) {
   taskList.appendChild(item);
   const tasks = getDataFromLocalStorage();
   let uniqueTask = taskValue;
+  console.log(tasks);
   for (let taskName of tasks) {
-    if (taskName.trim() === taskValue) {
+    if (taskName[0].trim() === taskValue) {
       uniqueTask += " ";
     }
   }
-  tasks.push(uniqueTask);
+  let newTask = [uniqueTask, "active"];
+  tasks.push(newTask);
   setDataToLocalStorage(tasks);
-
-  //   console.log(taskList);
 }
 
-// delete task
+// modified tast to ui
 taskList.addEventListener("click", function (event) {
   if (event.target.className == "delete") {
     deleteTask(event);
@@ -55,7 +54,7 @@ taskList.addEventListener("click", function (event) {
   }
 });
 
-// delete task
+// delete task form ui
 function deleteTask(event) {
   event.target.parentElement.remove();
   const innerText = event.target.parentElement.firstElementChild.innerText;
@@ -64,8 +63,14 @@ function deleteTask(event) {
 
 // remove from local storage
 function removeDataFromLocalStorage(innerText) {
+  console.log(innerText);
   const tasks = getDataFromLocalStorage();
-  const index = tasks.indexOf(innerText);
+  let index;
+  for (let i = 0; i < tasks.length; i++) {
+    if (tasks[i][0] == innerText) {
+      index = i;
+    }
+  }
   console.log(index);
   tasks.splice(index, 1);
   setDataToLocalStorage(tasks);
@@ -74,13 +79,29 @@ function removeDataFromLocalStorage(innerText) {
 // completed task
 function completedTask(event) {
   const li = event.target.parentElement.firstElementChild;
-  //   li.classList.toggle("completed_task");
+  li.classList.toggle("completed_task");
+  const tasks = getDataFromLocalStorage();
+  let index;
+  tasks.forEach((task, i) => {
+    if (task[0] == li.innerText) {
+      index = i;
+    }
+  });
+  let task = tasks[index];
 
-  if ([...li.classList].includes("completed_task")) {
-    li.classList.remove("completed_task");
+  if (task[1] == "active") {
+    task[1] = "completed";
   } else {
-    li.classList.add("completed_task");
+    task[1] = "active";
   }
+  tasks.splice(index, 1, task);
+  setDataToLocalStorage(tasks);
+
+  // if ([...li.classList].includes("completed_task")) {
+  //   li.classList.remove("completed_task");
+  // } else {
+  //   li.classList.add("completed_task");
+  // }
 }
 
 // edit task
@@ -109,6 +130,20 @@ function editTask(event) {
       const editedTask = e.target.value;
       li.innerText = editedTask;
       event.target.style.display = "inline";
+
+      // edited task set to local storage
+      const tasks = getDataFromLocalStorage();
+      let index;
+      for (let i = 0; i < tasks.length; i++) {
+        if (tasks[i][0] == prevText) {
+          index = i;
+        }
+      }
+      let prevTask = tasks[index];
+      prevTask.splice(0, 1, editedTask);
+
+      tasks.splice(index, 1, prevTask);
+      setDataToLocalStorage(tasks);
     }
   });
 }
@@ -137,8 +172,12 @@ function displayToUI(tasks) {
   tasks.forEach((task) => {
     const item = document.createElement("div");
     item.className = "item";
+    let status = "";
+    if (task[1] === "completed") {
+      status = "completed_task";
+    }
     item.innerHTML = `
-  <li>${task}</li>
+  <li class=${status}>${task[0]}</li>
   <button class="edit"><i class="fas fa-pen"></i></button>
   <button class="completed"><i class="fas fa-check"></i></button>
   <button class="delete"><i class="fas fa-trash"></i></button>
